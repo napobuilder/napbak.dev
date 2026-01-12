@@ -13,10 +13,9 @@ const App = () => {
 
   // Estados para el precio y la animación de carga
   const [exchangeRate, setExchangeRate] = useState(INITIAL_RATE);
-  const [parallelRate, setParallelRate] = useState(750); // Precio paralelo inicial
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Función para obtener el precio del dólar oficial y paralelo desde DolarAPI.com
+  // Función para obtener el precio del dólar oficial desde DolarAPI.com
   const fetchLiveRate = async () => {
     setIsUpdating(true); // Activa la animación de carga
     
@@ -29,37 +28,9 @@ const App = () => {
       const oficialData = await oficialResponse.json();
       const newOficialRate = oficialData.promedio || oficialData.venta || INITIAL_RATE;
       
-      // Obtener precio paralelo - Intentamos varios endpoints comunes
-      let newParallelRate = 750; // Valor por defecto
-      const parallelEndpoints = [
-        'https://ve.dolarapi.com/v1/dolares/monitor-dolar-today',
-        'https://ve.dolarapi.com/v1/dolares/paralelo',
-        'https://ve.dolarapi.com/v1/dolares/enparalelovzla'
-      ];
-      
-      for (const endpoint of parallelEndpoints) {
-        try {
-          const parallelResponse = await fetch(endpoint);
-          if (parallelResponse.ok) {
-            const parallelData = await parallelResponse.json();
-            // Intentamos diferentes campos posibles en la respuesta
-            const rate = parallelData.promedio || parallelData.venta || parallelData.precio || 
-                        parallelData.venta_promedio || parallelData.valor || null;
-            if (rate && rate > 0) {
-              newParallelRate = rate;
-              break; // Si encontramos un valor válido, salimos del loop
-            }
-          }
-        } catch (error) {
-          // Continuamos con el siguiente endpoint
-          continue;
-        }
-      }
-      
-      // Actualizamos los precios con un pequeño delay para mantener la sensación de "latencia"
+      // Actualizamos el precio con un pequeño delay para mantener la sensación de "latencia"
       setTimeout(() => {
         setExchangeRate(Number(newOficialRate.toFixed(2)));
-        setParallelRate(Number(newParallelRate.toFixed(2)));
         setIsUpdating(false); // Apaga la animación
       }, 300); // Delay mínimo para mantener la UX fluida
       
