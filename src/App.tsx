@@ -3,36 +3,63 @@ import { Terminal, AlertTriangle, DollarSign, CheckCircle, MessageSquare, Cpu, S
 
 const App = () => {
   const MY_PHONE_NUMBER = "584220163089";
-  const PRICE_USD = 797;
+  const PRICE_USD = 997;
+  const DISCOUNT_PRICE_USD = 697;
   const INITIAL_RATE = 700;
   const BRAND_NAME = "NAPBAK_DEV"; 
 
-  const whatsappMessage = `Hola, vi tu página en ${BRAND_NAME}. Tengo un negocio de repuestos y me interesa el sistema de $${PRICE_USD}.`;
+  const whatsappMessage = `Hola, vi tu página en ${BRAND_NAME}. Tengo un negocio de repuestos y me interesa el sistema.`;
   const whatsappLink = `https://wa.me/${MY_PHONE_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
 
   // Estados para el precio y la animación de carga
   const [exchangeRate, setExchangeRate] = useState(INITIAL_RATE);
+  const [parallelRate, setParallelRate] = useState(750); // Precio paralelo inicial
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Función para obtener el precio del dólar oficial desde DolarAPI.com
+  // Función para obtener el precio del dólar oficial y paralelo desde DolarAPI.com
   const fetchLiveRate = async () => {
     setIsUpdating(true); // Activa la animación de carga
     
     try {
-      const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+      // Obtener precio oficial
+      const oficialResponse = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+      if (!oficialResponse.ok) {
+        throw new Error('Error al obtener el precio oficial');
+      }
+      const oficialData = await oficialResponse.json();
+      const newOficialRate = oficialData.promedio || oficialData.venta || INITIAL_RATE;
       
-      if (!response.ok) {
-        throw new Error('Error al obtener el precio del dólar');
+      // Obtener precio paralelo - Intentamos varios endpoints comunes
+      let newParallelRate = 750; // Valor por defecto
+      const parallelEndpoints = [
+        'https://ve.dolarapi.com/v1/dolares/monitor-dolar-today',
+        'https://ve.dolarapi.com/v1/dolares/paralelo',
+        'https://ve.dolarapi.com/v1/dolares/enparalelovzla'
+      ];
+      
+      for (const endpoint of parallelEndpoints) {
+        try {
+          const parallelResponse = await fetch(endpoint);
+          if (parallelResponse.ok) {
+            const parallelData = await parallelResponse.json();
+            // Intentamos diferentes campos posibles en la respuesta
+            const rate = parallelData.promedio || parallelData.venta || parallelData.precio || 
+                        parallelData.venta_promedio || parallelData.valor || null;
+            if (rate && rate > 0) {
+              newParallelRate = rate;
+              break; // Si encontramos un valor válido, salimos del loop
+            }
+          }
+        } catch (error) {
+          // Continuamos con el siguiente endpoint
+          continue;
+        }
       }
       
-      const data = await response.json();
-      
-      // Usamos el promedio del dólar oficial (o venta si promedio no está disponible)
-      const newRate = data.promedio || data.venta || INITIAL_RATE;
-      
-      // Actualizamos el precio con un pequeño delay para mantener la sensación de "latencia"
+      // Actualizamos los precios con un pequeño delay para mantener la sensación de "latencia"
       setTimeout(() => {
-        setExchangeRate(Number(newRate.toFixed(2)));
+        setExchangeRate(Number(newOficialRate.toFixed(2)));
+        setParallelRate(Number(newParallelRate.toFixed(2)));
         setIsUpdating(false); // Apaga la animación
       }, 300); // Delay mínimo para mantener la UX fluida
       
@@ -86,7 +113,7 @@ const App = () => {
             NO TENGO TIEMPO PARA VIDEOS EN 4K.
           </h1>
           <p className="text-lg md:text-xl font-medium mb-4">
-            Y tú no tienes tiempo para seguir cambiando precios a mano mientras el dólar sube.
+            Y tú no tienes tiempo para cambiar precios a mano mientras el dólar sube cada día.
           </p>
           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 my-6">
             <p className="font-bold flex items-center gap-2">
@@ -94,7 +121,7 @@ const App = () => {
               ATENCIÓN DUEÑO DE REPUESTOS:
             </p>
             <p className="mt-2 text-sm md:text-base">
-              Si tu inventario no se actualiza solo, estás perdiendo el <strong>30-40% de tu margen</strong> cada vez que hay un salto cambiario.
+              Si tu inventario no se actualiza, estás perdiendo hasta el <strong>30-40% de ganancia potencial</strong> en períodos de alta volatilidad cambiaria.
             </p>
           </div>
           
@@ -108,7 +135,7 @@ const App = () => {
             rel="noopener noreferrer"
             className="block w-full bg-neutral-900 text-white text-center font-bold text-xl py-4 hover:bg-neutral-800 hover:translate-y-1 hover:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(150,150,150,1)] active:translate-y-1 active:shadow-none"
           >
-            QUIERO MI TIENDA BLINDADA &rarr;
+            QUIERO MÍ TIENDA BLINDADA &rarr;
           </a>
           <p className="text-center text-xs text-neutral-500 mt-2">Cero reuniones inútiles. Hablemos de negocios.</p>
         </div>
@@ -123,9 +150,11 @@ const App = () => {
               <DollarSign size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2">La Brecha te está matando</h3>
+              <h3 className="text-xl font-bold mb-2">El dólar no deja de cambiar</h3>
               <p className="text-neutral-600">
-                Tasa BCV a 300+. Paralelo a 700+. Si cobras mal un alternador, tienes que vender dos para recuperar la pérdida. Mi sistema te permite gestionar precios base en Dólares Reales.
+                La tasa oficial se actualiza diariamente. Si fijas un precio hoy, mañana estás perdiendo margen.<br/>
+                Si cobras mal un alternador, tienes que vender dos para recuperar la pérdida.<br/>
+                Mi sistema te permite gestionar precios base en Dólares Reales, sin actualizaciones manuales.
               </p>
             </div>
           </div>
@@ -137,7 +166,7 @@ const App = () => {
             <div>
               <h3 className="text-xl font-bold mb-2">Excel no es un E-commerce</h3>
               <p className="text-neutral-600">
-                Tener un Excel compartido o responder precios por WhatsApp uno a uno es ineficiente. Necesitas un catálogo que venda mientras duermes (o mientras buscas gasolina).
+                Tener un Excel compartido o responder precios por WhatsApp uno a uno es ineficiente. Necesitas un catálogo que actualice precios automáticamente mientras duermes.
               </p>
             </div>
           </div>
@@ -156,7 +185,7 @@ const App = () => {
             <p className="text-sm text-neutral-300">
               {'>'} No soy el sobrino que "sabe de compus".<br/>
               {'>'} Soy experto en procesos y lógica fundamental.<br/>
-              {'>'} Trabajo con estándares americanos, aplicado al caos venezolano.
+              {'>'} Trabajo con estándares americanos, aplicado a la realidad venezolana.
             </p>
           </div>
         </div>
@@ -174,8 +203,9 @@ const App = () => {
           <ul className="space-y-4 mb-8">
             {[
               "Sitio Web Ultra-Rápido (Carga en 3G)",
+              "Precios que se actualizan automáticamente (sin intervención manual)",
               "Catálogo Autoadministrable (Desde el cel)",
-              "Botón de WhatsApp Directo al Vendedor",
+              "Botón de WhatsApp Directo al Vendedor + precio actualizado en cada consulta",
               "Hosting y Dominio por 1 año incluido",
               "Entrega en 7 días hábiles"
             ].map((item, i) => (
@@ -186,14 +216,24 @@ const App = () => {
             ))}
           </ul>
 
-          <div className="bg-neutral-100 p-6 text-center border-2 border-dashed border-neutral-300 mb-8">
+          <div className="bg-neutral-100 p-6 text-center border-2 border-dashed border-neutral-300 mb-6">
             <p className="text-sm text-neutral-500 mb-1">INVERSIÓN ÚNICA</p>
             <div className="text-5xl font-black tracking-tighter text-neutral-900">
               ${PRICE_USD} <span className="text-lg text-neutral-500 font-normal">USD</span>
             </div>
-            <p className="text-xs text-red-500 font-bold mt-2 bg-red-50 inline-block px-2">
-              ACEPTO: BINANCE (USDT) / ZELLE / EFECTIVO
+            <p className="text-xs text-neutral-500 mt-1">(precio normal)</p>
+            <div className="bg-green-50 border-2 border-green-400 p-4 mt-4">
+              <p className="text-sm font-bold text-green-800 mb-1">PRIMEROS 5 CLIENTES ESTE MES:</p>
+              <p className="text-3xl font-black text-green-900">${DISCOUNT_PRICE_USD} <span className="text-lg font-normal text-green-700">USD</span></p>
+            </div>
+            <p className="text-xs text-red-500 font-bold mt-4 bg-red-50 inline-block px-2">
+              ACEPTO: TRANSFERENCIAS DIGITALES / ZELLE / EFECTIVO
             </p>
+          </div>
+
+          <div className="bg-yellow-50 border-2 border-yellow-300 p-4 mb-6 text-center">
+            <p className="text-sm font-bold text-neutral-900 mb-2">SIN DEMOSTRACIÓN. SIN ESPERA.</p>
+            <p className="text-sm text-neutral-700">En 7 días hábiles tienes tu tienda blindada. Completa. Funcional.</p>
           </div>
 
           <a 
@@ -203,11 +243,8 @@ const App = () => {
             className="flex items-center justify-center gap-3 w-full bg-green-600 text-white font-bold text-xl py-4 hover:bg-green-700 transition-colors shadow-[4px_4px_0px_0px_rgba(0,100,0,0.4)] active:translate-y-1 active:shadow-none"
           >
             <MessageSquare size={24} />
-            AGENDAR DEMOSTRACIÓN
+            VAMOS A HACERLO - HABLEMOS DE NEGOCIO &rarr;
           </a>
-          <p className="text-center text-xs mt-4 text-neutral-500">
-            *Si insistes en pagar en Bs, se calcula a tasa de mercado del día del pago.
-          </p>
         </div>
       </section>
 
