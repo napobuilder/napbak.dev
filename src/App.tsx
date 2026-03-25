@@ -6,6 +6,7 @@ import { Marquee } from './components/home/Marquee';
 import { Catalog } from './components/home/Catalog';
 import { BentoGrid } from './components/home/BentoGrid';
 import { SocialProof } from './components/home/SocialProof';
+import { AboutMe } from './components/home/AboutMe';
 import { Footer } from './components/layout/Footer';
 import { CartDrawer } from './components/cart/CartDrawer';
 
@@ -25,6 +26,7 @@ const App = () => {
       <Catalog />
       <BentoGrid />
       <SocialProof />
+      <AboutMe />
       <Footer />
       <CartDrawer />
     </div>
