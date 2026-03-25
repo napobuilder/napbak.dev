@@ -37,7 +37,7 @@ export const AboutMe = () => {
           </h2>
           
           <p className="text-zinc-400 text-lg leading-relaxed mb-8 max-w-2xl font-light">
-            No soy una agencia genérica. Soy un <strong className="text-white">Indie Hacker</strong> de la vieja guardia. Llevo la mentalidad y las metodologías de Silicon Valley a tus proyectos: código atómico, estado centralizado y rendimiento absurdo. Conmigo, no compras una plantilla, compras <strong className="text-white">ingeniería de producto real</strong>.
+            No soy una agencia genérica. Soy un adicto a la IA, productor musical, diseñador y me la tiro de Indie Hacker con TDAH hiperfocado. Llevo la filosofía de Silicon Valley y mis años en marketing digital directamente a tu proyecto: arquitectura atómica, estado centralizado y un rendimiento absurdo. Conmigo no compras plantillas, compras <strong className="text-white">ingeniería de producto real que vende</strong>.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
